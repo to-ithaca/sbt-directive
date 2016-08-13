@@ -8,8 +8,9 @@ lazy val publishSettings = Seq(
 lazy val commonSettings = Seq(
   resolvers ++= Seq(
     Resolver.sonatypeRepo("releases"),
-    Resolver.sonatypeRepo("snapshots")
-  )
+    Resolver.sonatypeRepo("snapshots")),
+    libraryDependencies += 
+      "org.scalatest" %% "scalatest" % "3.0.0-M7" % "test"
 )
 
 lazy val cli = (project in file("cli"))
