@@ -2,16 +2,27 @@ package cli
 
 import scala.util.Try
 
+import scala.meta._
+
 trait Preprocessor {
-  def transform(source: String): Try[String]
+  def name: String
+  def transform(source: List[String]): List[String]
 }
 
 object Preprocessor {
-  def lines(name: String)(f: List[String] => List[String]): Preprocessor = new Preprocessor {
-    def transform(source: String): Try[String] = 
-      Try(f(source.split("\n").toList).mkString("\n"))
+  def lines(n: String)(f: List[String] => List[String]): Preprocessor = new Preprocessor {
+    val name: String = n 
+    def transform(source: List[String]): List[String] = 
+      f(source)
   }
-  def seq(preprocessors: Preprocessor*): Preprocessor =
-    preprocessors.head
+
+  def ast(n: String)(f: parsers.Parsed[Term] => parsers.Parsed[Term]): Preprocessor = new Preprocessor {
+    val name: String = n
+    def transform(source: List[String]): List[String] =
+      source.mkString("\n").parse[Term].get.syntax.split("\n").toList
+  }
+
+  def seq(preprocessors: Preprocessor*): Map[String, Preprocessor] =
+    preprocessors.map(p => p.name -> p).toMap
 }
 
