@@ -5,18 +5,25 @@ import sbt.Keys._
 
 object Directive {
 
-  val main = s"""
-object TestApp extends App {
-  println("Hello!")
+  def main(src: File, target: File, preprocessors: List[DeferredPreprocessor]) = s"""
+object CliGenerated {
+
+  def main(args: Array[String]): Unit = { 
+   val sourceDir = new java.io.File("${src.getAbsolutePath}")
+   val targetDir = new java.io.File("${target.getAbsolutePath}")
+   val preprocessors = _root_.cli.Preprocessor.seq(${preprocessors.map(_.source).mkString(",")})
+   new _root_.cli.Cli(preprocessors).run(sourceDir, targetDir)
+ }
 }
 """
 
-  def runTask(log: Logger, srcDir: File, cp: Classpath, genDir: File, javaHome: Option[File]): Seq[File] = {
+  def runTask(log: Logger, srcDir: File, cp: Classpath, 
+    genDir: File, javaHome: Option[File], preprocessors: List[DeferredPreprocessor]): Seq[File] = {
     val parentFile = genDir / "directive"
     val srcFile = genDir / "directive" / "src" / "DirectiveMain.scala"
     val destDir = genDir / "directive" / "classes"
  
-    IO.write(srcFile, main)
+    IO.write(srcFile, main(srcDir, destDir, preprocessors))
     IO.createDirectory(destDir)
     
     val options = ForkOptions(
@@ -28,6 +35,8 @@ object TestApp extends App {
       "-d", destDir.getAbsolutePath,
       srcFile.getAbsolutePath
     ))
+
+    log.info(s"source directory is ${srcDir}")
     log.info(s"result is $result")
     log.info(s"parsing directives in $srcDir")
     cp.files.foreach { f =>
@@ -41,17 +50,17 @@ object TestApp extends App {
     )
 
     val run = Fork.scala(runOptions, List(
-      "TestApp",
+      "CliGenerated",
       srcDir.absolutePath
     ))
-
     Seq.empty
   }
 
+  import DirectiveKeys._
 
   def apply(): Def.Initialize[Task[Seq[File]]] = Def.task(
-    runTask(streams.value.log, sourceDirectory.value, dependencyClasspath.value, 
-      target.value, javaHome.value)
+    runTask(streams.value.log, scalaSource.value, dependencyClasspath.value, 
+      target.value, javaHome.value, preprocessors.value)
   )
 }
 
