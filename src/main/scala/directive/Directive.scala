@@ -17,7 +17,8 @@ object CliGenerated {
 }
 """
 
-  def runTask(log: Logger, srcDir: File, cp: Classpath, genDir: File, javaHome: Option[File], preprocessors: List[DeferredPreprocessor]): Seq[File] = {
+  def runTask(log: Logger, srcDir: File, cp: Classpath, 
+    genDir: File, javaHome: Option[File], preprocessors: List[DeferredPreprocessor]): Seq[File] = {
     val parentFile = genDir / "directive"
     val srcFile = genDir / "directive" / "src" / "DirectiveMain.scala"
     val destDir = genDir / "directive" / "classes"
