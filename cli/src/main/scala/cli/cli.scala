@@ -4,12 +4,28 @@ import scala.io.Source
 
 import java.io._
 
+
 final class Cli(preprocessors: Map[String, Preprocessor]) {
 
   def run(srcDir: File, targetDir: File): Unit = {
-    println("running cli")
+    println(s"running cli: ${srcDir.getAbsolutePath}")
     walk(srcDir, targetDir)
   }
+
+
+  private def processBatch(preprocessor: Preprocessor, batches: List[List[String]]): List[List[String]] = 
+    batches match {
+      case batch :: prevBatch :: tail =>
+        val result = preprocessor.transform(batch.reverse).reverse
+        (result ::: prevBatch) :: tail
+      case batch :: Nil =>
+        val result = preprocessor.transform(batch.reverse).reverse
+        result :: Nil
+      case Nil => batches
+    }
+
+  def matchToken(token: String, directives: List[String]): Option[Preprocessor] =
+    directives.headOption.filter(_ == token).flatMap(preprocessors.get)
 
   def process(file: String, lines: List[String]): List[String] = {
 
@@ -30,29 +46,13 @@ final class Cli(preprocessors: Map[String, Preprocessor]) {
         case (s, n) :: ss if s.startsWith("#-") => 
           val tok  = s.drop(2).trim
           val lineNumber = n + 1
-          directives match {
-            case `tok` :: ts => 
-              preprocessors.get(tok) match {
-                case None => sys.error(s"$file: $lineNumber: no preprocessor for token $tok")
-                case Some(preprocessor) =>
-                  batches match {
-                    case batch :: prevBatch :: tail => 
-                      val result = preprocessor.transform(batch.reverse).reverse
-                      go(ss, ts, (result ::: prevBatch) :: tail)
-                   case batch :: Nil => 
-                      val result = preprocessor.transform(batch.reverse).reverse
-                      go(ss, ts, result :: Nil)
-                    case Nil =>
-                      go(ss, ts, batches)
-                  }
-
-              }
-
-            case t :: _      => sys.error(s"$file: $lineNumber: expected #-$t, found #-$tok")
-            case _           => sys.error(s"$file: $lineNumber: unexpected #-$tok")
+          matchToken(tok, directives) match {
+            case Some(preprocessor) =>
+              val nextBatches = processBatch(preprocessor, batches)
+              go(ss, directives.tail, nextBatches)
+            case None =>
+              sys.error(s"$file: $lineNumber: no preprocessor for token $tok")
           }
-
-        // Add a line, or not, depending on tokens.
         case (s, _) :: ss => go(ss, directives, (s :: batches.head) :: batches.tail)
       }
     go(lines.zipWithIndex, Nil, List(Nil))
@@ -62,6 +62,7 @@ final class Cli(preprocessors: Map[String, Preprocessor]) {
     if (src.isFile) {
       if (src.isHidden) Nil
       else {
+        println(s"walking with source $src dest $destDir")
         val f = new File(destDir, src.getName)
         val s = Source.fromFile(src, "UTF-8")
         try {
@@ -84,12 +85,4 @@ final class Cli(preprocessors: Map[String, Preprocessor]) {
         case n: NullPointerException => Nil
       }
     }
-
-  // all non-hidden files
-  private def closure(src: File): List[File] =
-    if (src.isFile) {
-      if (src.isHidden) Nil else List(src)
-    } else {
-      src.listFiles.toList.flatMap(closure)
-}
 }

@@ -54,5 +54,11 @@ class CliTests extends FunSpec with Matchers {
 
   }
 
-  it("should process an empty file")(pending)
+  it("should process an empty file") {
+  val preprocessors = Map("identity" -> id)
+    val source = List.empty[String]
+    val cli = new Cli(preprocessors)
+    val result = cli.process("code2.scala", source)
+    cli.process("code2.scala", source) shouldBe empty
+  }
 }

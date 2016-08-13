@@ -18,12 +18,12 @@ object CliGenerated {
 """
 
   def runTask(log: Logger, srcDir: File, cp: Classpath, 
-    genDir: File, javaHome: Option[File], preprocessors: List[DeferredPreprocessor]): Seq[File] = {
+    genDir: File, javaHome: Option[File], preprocessors: List[DeferredPreprocessor], targetDir: File): Seq[File] = {
     val parentFile = genDir / "directive"
     val srcFile = genDir / "directive" / "src" / "DirectiveMain.scala"
     val destDir = genDir / "directive" / "classes"
  
-    IO.write(srcFile, main(srcDir, destDir, preprocessors))
+    IO.write(srcFile, main(srcDir, targetDir, preprocessors))
     IO.createDirectory(destDir)
     
     val options = ForkOptions(
@@ -60,7 +60,7 @@ object CliGenerated {
 
   def apply(): Def.Initialize[Task[Seq[File]]] = Def.task(
     runTask(streams.value.log, scalaSource.value, dependencyClasspath.value, 
-      target.value, javaHome.value, preprocessors.value.toList)
+      target.value, javaHome.value, preprocessors.value.toList, generatedSourceDir.value)
   )
 }
 
