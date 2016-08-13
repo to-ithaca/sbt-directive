@@ -19,7 +19,7 @@ object DirectivePlugin extends AutoPlugin {
       scalaSource := baseDirectory.value / "src" / "main" / "scala"
     )) ++ 
     Seq(
-      preprocessors := Nil,
+      preprocessors := Seq.empty,
       (sourceGenerators in Compile) <+= (directive in DirectiveConfig),
       (scalaSource in Compile) := target.value / "directive" / "output",
       ivyConfigurations += DirectiveConfig,
@@ -32,6 +32,6 @@ object DirectivePlugin extends AutoPlugin {
 }
 
 object DirectiveKeys {
-  val preprocessors: SettingKey[List[DeferredPreprocessor]] = settingKey("preprocessor directives")
+  val preprocessors: SettingKey[Seq[DeferredPreprocessor]] = settingKey("preprocessor directives")
   val directive: TaskKey[Seq[File]] = taskKey("Preprocesses directives")
 }
