@@ -60,7 +60,7 @@ object CliGenerated {
 
   def apply(): Def.Initialize[Task[Seq[File]]] = Def.task(
     runTask(streams.value.log, scalaSource.value, dependencyClasspath.value, 
-      target.value, javaHome.value, preprocessors.value)
+      target.value, javaHome.value, preprocessors.value.toList)
   )
 }
 

@@ -14,11 +14,11 @@ lazy val commonSettings = Seq(
 
 lazy val cli = (project in file("cli"))
   .settings(commonSettings)
-.settings(Seq(
-  scalaVersion := "2.11.8",
-  moduleName := "cli",
-  libraryDependencies += "org.scalameta" %% "scalameta" % "1.0.0"
-)).settings(publishSettings)
+  .settings(Seq(
+    scalaVersion := "2.11.8",
+    moduleName := "cli",
+    libraryDependencies += "org.scalameta" %% "scalameta" % "1.0.0"))
+  .settings(publishSettings)
 
 lazy val root = (project in file("."))
   .settings(sbtPlugin := true)
