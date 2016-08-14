@@ -13,19 +13,26 @@ lazy val commonSettings = Seq(
       "org.scalatest" %% "scalatest" % "3.0.0-M7" % "test"
 )
 
-lazy val cli = (project in file("cli"))
-  .settings(commonSettings)
-  .settings(Seq(
-    scalaVersion := "2.11.8",
-    moduleName := "cli",
-    libraryDependencies += "org.scalameta" %% "scalameta" % "1.0.0"))
-  .settings(publishSettings)
+lazy val testSettings = ScriptedPlugin.scriptedSettings ++ Seq(
+  scriptedLaunchOpts ++= Seq(
+    "-Xmx1024M", 
+    "-XX:MaxPermSize=256M", 
+    s"-Dplugin.version=${version.value}"),
+    scriptedBufferLog := false
+)
 
-lazy val root = (project in file("."))
-  .settings(sbtPlugin := true)
-  .settings(commonSettings: _*)
-  .settings(publishSettings: _*)
-  .settings(Seq(
-    scalaVersion := "2.10.6"
-  ))
+lazy val cli = (project in file("cli")).settings(
+  commonSettings,
+  scalaVersion := "2.11.8",
+  moduleName := "cli",
+  libraryDependencies += "org.scalameta" %% "scalameta" % "1.0.0",
+  publishSettings
+)
 
+lazy val root = (project in file(".")).settings(
+  sbtPlugin := true,
+  commonSettings,
+  publishSettings,
+  scalaVersion := "2.10.6",
+  testSettings
+).aggregate(cli)
