@@ -14,7 +14,10 @@ lazy val commonSettings = Seq(
 )
 
 lazy val testSettings = ScriptedPlugin.scriptedSettings ++ Seq(
-  scriptedLaunchOpts <+= version { "-Dplugin.version=" + _ },
+  scriptedLaunchOpts ++= Seq(
+    "-Xmx1024M", 
+    "-XX:MaxPermSize=256M", 
+    s"-Dplugin.version=${version.value}"),
     scriptedBufferLog := false
 )
 
