@@ -13,6 +13,12 @@ lazy val commonSettings = Seq(
       "org.scalatest" %% "scalatest" % "3.0.0-M7" % "test"
 )
 
+//scripted plugin for testing
+lazy val testSettings = ScriptedPlugin.scriptedSettings ++ Seq(
+  scriptedLaunchOpts <+= version { "-Dplugin.version=" + _ },
+    scriptedBufferLog := false
+)
+
 lazy val cli = (project in file("cli"))
   .settings(commonSettings)
   .settings(Seq(
@@ -23,9 +29,7 @@ lazy val cli = (project in file("cli"))
 
 lazy val root = (project in file("."))
   .settings(sbtPlugin := true)
-  .settings(commonSettings: _*)
-  .settings(publishSettings: _*)
-  .settings(Seq(
-    scalaVersion := "2.10.6"
-  ))
-
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(scalaVersion := "2.10.6")
+  .settings(testSettings)

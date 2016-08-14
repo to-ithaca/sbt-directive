@@ -1,0 +1,3 @@
+package hello
+
+object HelloWorld

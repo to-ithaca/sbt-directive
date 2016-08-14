@@ -1,0 +1,3 @@
+> compile
+# should generate a CliGenerator.scala
+$exists target/directive/src/DirectiveMain.scala
