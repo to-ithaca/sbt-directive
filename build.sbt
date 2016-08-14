@@ -13,7 +13,6 @@ lazy val commonSettings = Seq(
       "org.scalatest" %% "scalatest" % "3.0.0-M7" % "test"
 )
 
-//scripted plugin for testing
 lazy val testSettings = ScriptedPlugin.scriptedSettings ++ Seq(
   scriptedLaunchOpts <+= version { "-Dplugin.version=" + _ },
     scriptedBufferLog := false

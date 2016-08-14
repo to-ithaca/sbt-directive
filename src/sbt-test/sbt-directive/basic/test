@@ -1,0 +1,10 @@
+> compile
+
+# Should generate a synthetic main DirectiveMain.scala
+$ exists target/directive/src/DirectiveMain.scala
+
+# Should generate a source
+$ exists target/directive/generatedSources/scala/hello/HelloWorld.scala
+
+# Source should be empty
+> checkEmpty target/directive/generatedSources/scala/hello/HelloWorld.scala

@@ -6,3 +6,4 @@ Option(System.getProperty("plugin.version")) match {
   case Some(pluginVersion) =>
     addSbtPlugin("sbt-directive" % "sbt-directive" % pluginVersion)
 }
+scalacOptions ++= Seq("-feature", "-deprecation")
