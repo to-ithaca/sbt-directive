@@ -1,0 +1,3 @@
+package multimodule
+
+object Core
