@@ -1,4 +1,4 @@
-impoty scala.io.Source
+import scala.io.Source
 
 val checkIdentity = InputKey[Unit]("checkIdentity")
 
