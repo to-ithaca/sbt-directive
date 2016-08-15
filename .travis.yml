@@ -4,4 +4,4 @@ scala:
   - 2.10.6
 
 script:
-- "sbt clean publish-local scripted"
+- "sbt clean test publish-local scripted"
