@@ -9,7 +9,5 @@ lazy val root = (project in file("."))
   .settings(publishSettings: _*)
   .settings(directiveSettings:_*)
   .settings(
-    preprocessors += directive.Preprocess.lines("strip") { 
-      "lines => Nil"
-    }
-)
+    preprocessors += preprocess.skip("strip")
+)    
