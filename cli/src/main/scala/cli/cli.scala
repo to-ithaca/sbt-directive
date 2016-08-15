@@ -2,6 +2,7 @@ package cli
 
 
 import scala.util.control.NonFatal
+import scala.collection.immutable.Queue
 import scala.io.Source
 
 import java.io._
@@ -35,6 +36,11 @@ object Cli {
       s"found unknown directive [ $directive ] on line [ $line ] for [ $file ]"
   }
 
+  case class UnexpectedFileType(f: File) extends ProcessError {
+    override def toString: String =
+      s"found unexpected file [ $f ], expected file or directory"
+  }
+
 }
 
 object Attempt {
@@ -53,21 +59,35 @@ object Attempt {
 final class Cli(preprocessors: Map[String, Preprocessor]) {
 
   def run(srcDir: File, targetDir: File): Unit = {
-    println(s"running cli: ${srcDir.getAbsolutePath}")
-    walk(srcDir, targetDir)
+    walk(srcDir, targetDir) match {
+      case Right(_) => ()
+      case Left(err) => sys.error(err.toString)
+    }
   }
 
 
-  private def processBatch(
-    preprocessor: Preprocessor,
-    batches: List[List[String]]): Attempt[List[List[String]]] =
-    batches match {
-      case batch :: prevBatch :: tail =>
-        Attempt(preprocessor.transform(batch.reverse).reverse).right.map( r => (r ::: prevBatch) :: tail )
-      case batch :: Nil =>
-        Attempt(preprocessor.transform(batch.reverse).reverse).right.map(List(_))
-      case Nil => Attempt.success(batches)
-    }
+  private def walk(src: File, dest: File): Attempt[Unit] =
+    if (src.isDirectory) {
+      dest.mkdir()
+      val children = src.listFiles.toList
+      children.foldLeft(Attempt.success(())) { (prev, f) => 
+        prev.right.flatMap(_ => walk(f, new File(dest, f.getName)))
+      }
+    } else if (src.isFile) {
+
+      val source = Source.fromFile(src, "UTF-8")      
+      val pw = new PrintWriter(dest, "UTF-8")
+
+      val result = process(src, source.getLines.toList).right.map(destLines =>
+        destLines.foreach(pw.println))
+
+      pw.close()
+      source.close()
+
+      result
+
+    } else Attempt.fail(Cli.UnexpectedFileType(src))
+
 
   def process(file: File, lines: List[String]): Attempt[List[String]] = {
 
@@ -75,69 +95,57 @@ final class Cli(preprocessors: Map[String, Preprocessor]) {
     def go(
       lines: List[(String, Int)],
       directives: List[String],
-      batches: List[List[String]]): Attempt[List[String]] =
+      batches: List[Queue[String]]): Attempt[List[String]] =
       lines match {
+
         // No more lines, done!
         case Nil => 
           if (directives.isEmpty)
-            Attempt.success(batches.reverse.flatten.reverse)
+            Attempt.success(batches.reverse.flatMap(_.toList))
           else
             Attempt.fail(Cli.UnclosedDirectives(directives, file))
+
         // Push a token.
-        case (s, p) :: ss if s.startsWith("#+") =>
-          val tok = s.drop(2).trim
-          if(preprocessors.get(tok).isEmpty)
-            Attempt.fail(Cli.UnknownDirective(tok, p + 1, file))
+        case (s, p) :: tail if s.startsWith("#+") =>
+          val d = directive(s)
+          if(!preprocessors.contains(d))
+            Attempt.fail(Cli.UnknownDirective(d, p + 1, file))
           else
-          go(ss,  tok :: directives, Nil :: batches)
+            go(tail,  d :: directives, Queue.empty :: batches)
+
         // Pop a token.
-        case (s, p) :: ss if s.startsWith("#-") => 
-          val tok  = s.drop(2).trim
+        case (s, p) :: tail if s.startsWith("#-") => 
+          val d  = directive(s)
           directives.headOption match {
-            case Some(expected) =>
-              if(expected == tok)
-                processBatch(preprocessors(tok), batches) match {
-                  case Left(err) => Attempt.fail(Cli.PreprocessorFailed(tok, err, p + 1, file))
-                  case Right(next) => go(ss, directives.tail, next)  
-                }
-              else
-                Attempt.fail(Cli.UnexpectedDirective(tok, expected, p + 1, file))
+            case Some(`d`) =>
+              processBatch(preprocessors(d), batches) match {
+                case Left(err) => Attempt.fail(Cli.PreprocessorFailed(d, err, p + 1, file))
+                case Right(next) => go(tail, directives.tail, next)
+              }
+            case Some(expected) => 
+              Attempt.fail(Cli.UnexpectedDirective(d, expected, p + 1, file))
             case None =>
-              Attempt.fail(Cli.UnmatchedDirective(tok, p + 1, file))
+              Attempt.fail(Cli.UnmatchedDirective(d, p + 1, file))
           }
-        case (s, _) :: ss => go(ss, directives, (s :: batches.head) :: batches.tail)
+
+        case (s, _) :: tail => go(tail, directives, (batches.head.enqueue(s)) :: batches.tail)
       }
-    go(lines.zipWithIndex, Nil, List(Nil))
+
+    go(lines.zipWithIndex, Nil, List(Queue.empty))
   }
 
-  def walk(src: File, destDir: File): List[File] =
-    if (src.isFile) {
-      if (src.isHidden) Nil
-      else {
-        println(s"walking with source $src dest $destDir")
-        val f = new File(destDir, src.getName)
-        val s = Source.fromFile(src, "UTF-8")
-        try {
-          destDir.mkdirs()
-          val pw = new PrintWriter(f, "UTF-8")
-          try {
-            process(src, s.getLines.toList) match {
-              case Left(err) => sys.error(err.toString)
-              case Right(lines) => lines.foreach(pw.println)  
-            }
-          } finally {
-            pw.close()
-          }
-        } finally {
-          s.close()
-        }
-        List(f)
-      }
-    } else {
-      try {
-        src.listFiles.toList.flatMap(f => walk(f, new File(destDir, src.getName)))
-      } catch {
-        case n: NullPointerException => Nil
-      }
+  private def directive(s: String): String = s.drop(2).trim
+
+  private def processBatch(
+    p: Preprocessor,
+    batches: List[Queue[String]]): Attempt[List[Queue[String]]] =
+    batches match {
+      case cur :: prev :: tail =>
+        Attempt(p.transform(cur.toList)).right.map(r => 
+          prev.enqueue(r) :: tail)
+      case cur :: Nil =>
+        Attempt(p.transform(cur.toList)).right.map(r =>
+          List(Queue(r:_*)))
+      case Nil => Attempt.success(batches)
     }
 }

@@ -1,10 +1,10 @@
 > compile
 
 # Should generate a source for kernel
-$ exists kernel/target/directive/generatedSources/scala/multimodule/kernel.scala
+$ exists kernel/target/directive/generatedSources/multimodule/kernel.scala
 
 # Source should be empty
-> checkEmpty kernel/target/directive/generatedSources/scala/multimodule/kernel.scala
+> checkEmpty kernel/target/directive/generatedSources/multimodule/kernel.scala
 
 # Should not generate a source for core
--$ exists core/target/directive/generatedSources/scala/multimodule/core.scala
+-$ exists core/target/directive/generatedSources/multimodule/core.scala

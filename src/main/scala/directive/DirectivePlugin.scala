@@ -15,6 +15,7 @@ object DirectivePlugin extends AutoPlugin {
 
     val directiveSettings = 
       inConfig(DirectiveConfig)(Defaults.compileSettings ++ Seq(
+      generate := Generate().value,
       directive := Directive().value,
       scalaSource := baseDirectory.value / "src" / "main" / "scala",
       generatedSourceDir := target.value / "directive" / "generatedSources"
@@ -33,7 +34,9 @@ object DirectivePlugin extends AutoPlugin {
 }
 
 object DirectiveKeys {
+
   val generatedSourceDir: SettingKey[File] = settingKey("directory containing generated sources")
   val preprocessors: SettingKey[Seq[DeferredPreprocessor]] = settingKey("preprocessor directives")
-  val directive: TaskKey[Seq[File]] = taskKey("Preprocesses directives")
+  val generate: TaskKey[File] = taskKey("generates and compiles a synthetic main")
+  val directive: TaskKey[Seq[File]] = taskKey("Runs preprocessors on directives")
 }

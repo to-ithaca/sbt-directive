@@ -1,0 +1,2 @@
+#Should fail to process directives
+-> compile

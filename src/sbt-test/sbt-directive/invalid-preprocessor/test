@@ -1,0 +1,2 @@
+#Should fail to compile preprocessors
+-> compile
