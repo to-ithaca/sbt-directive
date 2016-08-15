@@ -4,17 +4,21 @@ sealed trait DeferredPreprocessor {
   def source: String
 }
 
-
-
 object Preprocess {
 
-  def ast(name: String)(f: String): DeferredPreprocessor =
+  def ast(tag: String)(f: String): DeferredPreprocessor =
     new DeferredPreprocessor {
-      val source = s"""_root_.cli.Preprocessor.ast("$name")($f)"""
+      val source = s"""_root_.cli.Preprocessor.ast("$tag")($f)"""
     }
 
-  def lines(name: String)(f: String): DeferredPreprocessor = 
+  def lines(tag: String)(f: String): DeferredPreprocessor = 
     new DeferredPreprocessor {
-      val source = s"""_root_.cli.Preprocessor.lines("$name")($f)"""
-  }
+      val source = s"""_root_.cli.Preprocessor.lines("$tag")($f)"""
+    }
+
+  def skip(tag: String): DeferredPreprocessor =
+    lines(tag)("_ => List.empty")
+
+  def identity(tag: String): DeferredPreprocessor =
+    lines(tag)("identity")
 }

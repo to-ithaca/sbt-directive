@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
   .settings(publishSettings: _*)
   .settings(directiveSettings:_*)
   .settings(
-    preprocessors += directive.Preprocess.lines("strip") { 
+    preprocessors += preprocess.lines("strip") { 
       "lines => this won't compile"
     }
 )

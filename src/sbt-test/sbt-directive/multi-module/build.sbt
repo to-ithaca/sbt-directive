@@ -8,9 +8,7 @@ lazy val publishSettings = Seq(
 lazy val kernel = (project in file("kernel")).settings(
   publishSettings,
   directiveSettings,
-  preprocessors += directive.Preprocess.lines("strip") {
-    "lines => Nil"
-  }
+  preprocessors += preprocess.skip("strip")
 )
 
 lazy val core = (project in file("core"))

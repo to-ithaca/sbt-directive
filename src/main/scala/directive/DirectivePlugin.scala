@@ -12,6 +12,7 @@ object DirectivePlugin extends AutoPlugin {
   object autoImport {
 
     val preprocessors = DirectiveKeys.preprocessors
+    val preprocess = Preprocess
 
     val directiveSettings = 
       inConfig(DirectiveConfig)(Defaults.compileSettings ++ Seq(
