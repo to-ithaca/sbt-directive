@@ -18,11 +18,13 @@ object Preprocessor {
 
   def ast(n: String)(f: parsers.Parsed[Term] => parsers.Parsed[Term]): Preprocessor = new Preprocessor {
     val name: String = n
-    def transform(source: List[String]): List[String] =
-      source.mkString("\n").parse[Term].get.syntax.split("\n").toList
+    def transform(source: List[String]): List[String] = {
+      val r = source.mkString(System.lineSeparator).parse[Term].get.syntax
+      r.split(System.lineSeparator).toList
+    }
   }
 
-  def seq(preprocessors: Preprocessor*): Map[String, Preprocessor] =
-    preprocessors.map(p => p.name -> p).toMap
+  def seq(ps: Preprocessor*): Map[String, Preprocessor] =
+    ps.map(p => p.name -> p).toMap
 }
 
