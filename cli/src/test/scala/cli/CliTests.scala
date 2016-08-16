@@ -15,6 +15,8 @@ class CliTests extends FunSpec with Matchers with Inside {
 
   val file = new java.io.File("file")
 
+  val idstat = Preprocessor.statement("identity")(identity)
+
   it("should return the same lines given an identity preprocessor") {
     val preprocessors = Map("identity" -> id)
     val source = List(
@@ -155,5 +157,53 @@ class CliTests extends FunSpec with Matchers with Inside {
     inside(cli.process(file, source)) {
       case Right(lines) => lines shouldBe empty
     }    
+  }
+
+  it("should process an import statement") {
+    val preprocessors = Map("identity" -> idstat)
+    val cli = new Cli(preprocessors)
+    val source = List(
+      "#+identity",
+      "import scalaz._, Scalaz._",
+      "#-identity"
+    )
+    val output = List(
+      "import scalaz._, Scalaz._"
+    )
+    inside(cli.process(file, source)) {
+      case Right(lines) => lines should contain theSameElementsInOrderAs output
+    }
+  }
+  it("should process a case statement") {
+    val preprocessors = Map("identity" -> idstat)
+    val cli = new Cli(preprocessors)
+    val source = List(
+      "#+identity",
+      "x match {",
+      "case Xor.Right(v) => v",
+      "case Xor.Left(err) => f(err)",
+      "}",
+      "#-identity"
+    )
+    inside(cli.process(file, source)) {
+      case Right(l :: Nil) =>
+        l  shouldBe "x match { case Xor.Right(v) => v case Xor.Left(err) => f(err) }"
+    }
+  }
+  it("should process a method definition") {
+    val preprocessors = Map("identity" -> idstat)
+    val cli = new Cli(preprocessors)
+    val source = List(
+      "#+identity",
+      "def term(",
+      "s: String,",
+      "i: Int",
+      "): Unit",
+      "#-identity"
+    )
+    inside(cli.process(file, source)) {
+      case Right(l :: Nil) =>
+        l shouldBe "def term( s: String, i: Int ): Unit"
+    }
   }
 }
