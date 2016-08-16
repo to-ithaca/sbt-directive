@@ -1,0 +1,7 @@
+> compile
+
+# Should generate a source
+$ exists target/directive/generatedSources/hello/HelloWorld.java
+
+# Source should be empty
+> checkEmpty target/directive/generatedSources/hello/HelloWorld.java

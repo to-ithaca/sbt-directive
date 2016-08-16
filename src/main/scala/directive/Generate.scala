@@ -7,27 +7,23 @@ import DirectiveKeys._
 
 object Generate {
 
-  def apply() = Def.task {
-    runTask(streams.value.log, 
+  val task = Def.task {
+    run(streams.value.log, 
       dependencyClasspath.value,
       preprocessors.value.toList,
-      target.value,
-      scalaSource.value,
-      generatedSourceDir.value
+      target.value
     )
   }
 
-  private def runTask(log: Logger, 
+  private def run(log: Logger, 
     cp: Classpath,
     preprocessors: List[DeferredPreprocessor],
-    target: File,
-    scalaSrcDir: File,
-    scalaTargetDir: File): File = {
+    target: File): File = {
 
     val srcFile = target / "directive" / "src" / "CliGenerated.scala"
     val destDir = target / "directive" / "classes"
  
-    IO.write(srcFile, src(scalaSrcDir, scalaTargetDir, preprocessors))
+    IO.write(srcFile, src(preprocessors))
 
     IO.createDirectory(destDir)
     
@@ -36,23 +32,24 @@ object Generate {
       outputStrategy = Some(StdoutOutput)
     )
 
-    val result = Fork.scalac(options, List(
+    val args = List(
       "-d", destDir.getAbsolutePath,
       srcFile.getAbsolutePath
-    ))
+    )
 
+    val result = Fork.scalac(options, args)
     if(result != 0)
       sys.error("Failed to compile preprocessors")
     else destDir
   }
 
-  private def src(scalaSrcDir: File, scalaTargetDir: File, preprocessors: List[DeferredPreprocessor]): String = 
+  private def src(preprocessors: List[DeferredPreprocessor]): String = 
 s"""
 object CliGenerated {
 
   def main(args: Array[String]): Unit = { 
-   val src = new java.io.File("${scalaSrcDir.getAbsolutePath}")
-   val dest = new java.io.File("${scalaTargetDir.getAbsolutePath}")
+   val src = new java.io.File(args(0))
+   val dest = new java.io.File(args(1))
    val preprocessors = _root_.cli.Preprocessor.seq(${preprocessors.map(_.source).mkString(",")})
    new _root_.cli.Cli(preprocessors).run(src, dest)
  }

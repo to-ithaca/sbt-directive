@@ -35,12 +35,6 @@ object Cli {
     override def toString: String =
       s"found unknown directive [ $directive ] on line [ $line ] for [ $file ]"
   }
-
-  case class UnexpectedFileType(f: File) extends ProcessError {
-    override def toString: String =
-      s"found unexpected file [ $f ], expected file or directory"
-  }
-
 }
 
 object Attempt {
@@ -58,36 +52,22 @@ object Attempt {
 
 final class Cli(preprocessors: Map[String, Preprocessor]) {
 
-  def run(srcDir: File, targetDir: File): Unit = {
-    walk(srcDir, targetDir) match {
+  def run(src: File, dest: File): Unit = {
+
+    val source = Source.fromFile(src, "UTF-8")
+    val pw = new PrintWriter(dest, "UTF-8")
+
+    val result = process(src, source.getLines.toList).right.map(destLines =>
+      destLines.foreach(pw.println))
+
+    pw.close()
+    source.close()
+
+    result match {
       case Right(_) => ()
       case Left(err) => sys.error(err.toString)
     }
   }
-
-
-  private def walk(src: File, dest: File): Attempt[Unit] =
-    if (src.isDirectory) {
-      dest.mkdir()
-      val children = src.listFiles.toList
-      children.foldLeft(Attempt.success(())) { (prev, f) => 
-        prev.right.flatMap(_ => walk(f, new File(dest, f.getName)))
-      }
-    } else if (src.isFile) {
-
-      val source = Source.fromFile(src, "UTF-8")      
-      val pw = new PrintWriter(dest, "UTF-8")
-
-      val result = process(src, source.getLines.toList).right.map(destLines =>
-        destLines.foreach(pw.println))
-
-      pw.close()
-      source.close()
-
-      result
-
-    } else Attempt.fail(Cli.UnexpectedFileType(src))
-
 
   def process(file: File, lines: List[String]): Attempt[List[String]] = {
 

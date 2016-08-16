@@ -1,7 +1,7 @@
 lazy val publishSettings = Seq(
   name := "multi-module",
   scalaVersion := "2.11.8",
-  organization := "com.ithaca",
+  organization := "sbt-directive",
   version := "0.0.1-SNAPSHOT"
 )
 
@@ -11,9 +11,9 @@ lazy val kernel = (project in file("kernel")).settings(
   preprocessors += preprocess.skip("strip")
 )
 
-lazy val core = (project in file("core"))
-  .settings(publishSettings,
-    moduleName := "core"
+lazy val core = (project in file("core")).settings(
+   publishSettings,
+   moduleName := "core"
   ).dependsOn(kernel)
 
 lazy val root = (project in file("."))
