@@ -1,10 +1,12 @@
 package cli
 
+import java.util.concurrent.Executors
 
 import scala.util.control.NonFatal
 import scala.collection.immutable.Queue
 import scala.io.Source
-
+import scala.concurrent.{Future, Await}
+import scala.concurrent.duration._
 import java.io._
 
 object Cli {
@@ -52,8 +54,29 @@ object Attempt {
 
 final class Cli(preprocessors: Map[String, Preprocessor]) {
 
-  def run(src: File, dest: File): Unit = {
+  import scala.concurrent.ExecutionContext.Implicits.global
 
+  def run(srcDir: File, targetDir: File): Unit = {
+    val r: Future[List[Unit]] = Future.sequence(pairs(srcDir, targetDir).map {
+      case (src, dest) => 
+        Future(process(src, dest)).flatMap {
+        case Right(_) => Future.successful(())
+        case Left(err) => Future.failed(err)
+      }
+    })
+    Await.result(r, 5 minutes)
+  }
+
+  private def pairs(src: File, dest: File): List[(File, File)] =
+    if (src.isDirectory) {
+      dest.mkdir()
+      val children = src.listFiles.toList
+      children.flatMap( f => pairs(f, new File(dest, f.getName)))
+    } else if (src.isFile) {
+      List(src -> dest)
+    } else Nil
+
+  private def process(src: File, dest: File): Attempt[Unit] = {
     val source = Source.fromFile(src, "UTF-8")
     val pw = new PrintWriter(dest, "UTF-8")
 
@@ -63,10 +86,7 @@ final class Cli(preprocessors: Map[String, Preprocessor]) {
     pw.close()
     source.close()
 
-    result match {
-      case Right(_) => ()
-      case Left(err) => sys.error(err.toString)
-    }
+    result
   }
 
   def process(file: File, lines: List[String]): Attempt[List[String]] = {

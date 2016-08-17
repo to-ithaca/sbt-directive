@@ -7,32 +7,32 @@ import DirectiveKeys._
 
 object DirectivePlugin extends AutoPlugin {
 
-  val DirectiveConfig = config("directive")
-
   object autoImport {
+
+    val Directive = config("directive")
 
     val preprocessors = DirectiveKeys.preprocessors
     val preprocess = Preprocess
 
     val directiveSettings = 
-      inConfig(DirectiveConfig)(Defaults.compileSettings ++ Seq(
+      inConfig(Directive)(Defaults.compileSettings ++ Seq(
       generate := Generate.task.value,
-      directiveScala := Directive.scala.value,
-      directiveJava := Directive.java.value,
+      directiveScala := Run.scala.value,
+      directiveJava := Run.java.value,
       scalaSource := baseDirectory.value / "src" / "main" / "scala",
       javaSource := baseDirectory.value / "src" / "main" / "java",
       generatedSourceDir := target.value / "directive" / "generatedSources"
     )) ++ 
     Seq(
       preprocessors := Seq.empty,
-      (sourceGenerators in Compile) <+= (directiveScala in DirectiveConfig),
-      (sourceGenerators in Compile) <+= (directiveJava in DirectiveConfig),
+      (sourceGenerators in Compile) <+= (directiveScala in Directive),
+      (sourceGenerators in Compile) <+= (directiveJava in Directive),
       (scalaSource in Compile) := target.value / "directive" / "empty",
       (javaSource in Compile) := target.value / "directive" / "empty",
-      ivyConfigurations += DirectiveConfig,
+      ivyConfigurations += Directive,
       libraryDependencies ++= Seq(
-        "sbt-directive" %% "cli" % "0.0.1-SNAPSHOT" % DirectiveConfig,
-        "org.scala-lang" % "scala-compiler" % "2.11.8" % DirectiveConfig
+        "sbt-directive" %% "cli" % "0.0.1-SNAPSHOT" % Directive,
+        "org.scala-lang" % "scala-compiler" % "2.11.8" % Directive
       )
     )
   }
