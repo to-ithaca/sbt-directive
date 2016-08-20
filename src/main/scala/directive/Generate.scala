@@ -8,14 +8,13 @@ import DirectiveKeys._
 object Generate {
 
   val task = Def.task {
-    run(streams.value.log, 
-      dependencyClasspath.value,
+    run(dependencyClasspath.value,
       preprocessors.value.toList,
       target.value
     )
   }
 
-  private def run(log: Logger, 
+  private def run(
     cp: Classpath,
     preprocessors: List[DeferredPreprocessor],
     target: File): File = {

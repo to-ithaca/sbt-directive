@@ -1,7 +1,7 @@
 > compile
 
 # Should generate a source
-$ exists target/directive/generatedSources/hello/HelloWorld.java
+$ exists target/scala-2.11/src_managed/directive/hello/HelloWorld.java
 
 # Source should be empty
-> checkEmpty target/directive/generatedSources/hello/HelloWorld.java
+> checkEmpty target/scala-2.11/src_managed/directive/hello/HelloWorld.java
