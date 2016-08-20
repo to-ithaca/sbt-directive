@@ -27,9 +27,12 @@ class CliTests extends FunSpec with Matchers with Inside {
       "#-identity"
     )
     val output = List(
+      "",
       "val x = 1 + 2",
       "val y = 3",
-      "val z = x + y")
+      "val z = x + y",
+      ""
+    )
     
     val cli = new Cli(preprocessors)
     inside(cli.process(file, source)) {
@@ -51,9 +54,12 @@ class CliTests extends FunSpec with Matchers with Inside {
     val output = List(
       "def bar: Int = 1",
       "def foo: Unit = {}",
+      "",
       "val x = 1 + 2",
       "val y = 3",
-      "val z = x + y")
+      "val z = x + y",
+      ""
+    )
     
     val cli = new Cli(preprocessors)
     inside(cli.process(file, source)) {
@@ -140,8 +146,12 @@ class CliTests extends FunSpec with Matchers with Inside {
       "#-reverse"
     )
     val output = List(
+      "",
+      "",
       "123",
-      "456"
+      "456",
+      "",
+      ""
     )
     val cli = new Cli(preprocessors)
     inside(cli.process(file, source)) {

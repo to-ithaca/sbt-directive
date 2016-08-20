@@ -111,14 +111,14 @@ final class Cli(preprocessors: Map[String, Preprocessor]) {
           if(!preprocessors.contains(d))
             Attempt.fail(Cli.UnknownDirective(d, p + 1, file))
           else
-            go(tail,  d :: directives, Queue.empty :: batches)
+            go(tail,  d :: directives, Queue("") :: batches)
 
         // Pop a token.
         case (s, p) :: tail if s.startsWith("#-") => 
           val d  = directive(s)
           directives.headOption match {
             case Some(`d`) =>
-              processBatch(preprocessors(d), batches) match {
+              processBatch(preprocessors(d), enqueue(batches, "")) match {
                 case Left(err) => Attempt.fail(Cli.PreprocessorFailed(d, err, p + 1, file))
                 case Right(next) => go(tail, directives.tail, next)
               }
@@ -128,11 +128,14 @@ final class Cli(preprocessors: Map[String, Preprocessor]) {
               Attempt.fail(Cli.UnmatchedDirective(d, p + 1, file))
           }
 
-        case (s, _) :: tail => go(tail, directives, (batches.head.enqueue(s)) :: batches.tail)
+        case (s, _) :: tail => go(tail, directives, enqueue(batches, s))
       }
 
     go(lines.zipWithIndex, Nil, List(Queue.empty))
   }
+
+  private def enqueue(batches: List[Queue[String]], s: String): List[Queue[String]] =
+    batches.head.enqueue(s) :: batches.tail
 
   private def directive(s: String): String = s.drop(2).trim
 
