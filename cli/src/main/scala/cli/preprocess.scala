@@ -19,8 +19,8 @@ object Preprocessor {
   def statement(n: String)(f: Stat => Stat): Preprocessor = new Preprocessor {
     val name: String = n
     def transform(source: List[String]): List[String] = {
-
-      val (res, rem) = source.foldLeft(List.empty[Stat] -> List.empty[String]) {
+      println(s"source is ${source}")
+      val (res, rem) = source.filter(_.nonEmpty).foldLeft(List.empty[Stat] -> List.empty[String]) {
         case ((acc, stack), line) =>
           val fragment = (line :: stack).reverse.mkString(" ")
           fragment.parse[Stat] match {

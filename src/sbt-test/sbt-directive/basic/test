@@ -3,5 +3,5 @@
 # Should generate a source
 $ exists target/scala-2.11/src_managed/directive/hello/HelloWorld.scala
 
-# Source should be empty
-> checkEmpty target/scala-2.11/src_managed/directive/hello/HelloWorld.scala
+# Source should contain 5 empty lines
+> checkEmptyAndSize target/scala-2.11/src_managed/directive/hello/HelloWorld.scala 5
