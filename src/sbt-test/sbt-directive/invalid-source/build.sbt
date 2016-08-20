@@ -1,8 +1,6 @@
 lazy val publishSettings = Seq(
   name := "invalid-source",
-  scalaVersion := "2.11.8",
-  organization := "sbt-directive",
-  version := "0.0.1-SNAPSHOT"
+  scalaVersion := "2.11.8"
 )
 
 

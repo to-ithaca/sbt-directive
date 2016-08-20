@@ -1,8 +1,6 @@
 lazy val publishSettings = Seq(
   name := "multi-module",
-  scalaVersion := "2.11.8",
-  organization := "sbt-directive",
-  version := "0.0.1-SNAPSHOT"
+  scalaVersion := "2.11.8"
 )
 
 lazy val kernel = (project in file("kernel")).settings(

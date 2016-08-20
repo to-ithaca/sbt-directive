@@ -1,8 +1,12 @@
 lazy val publishSettings = Seq(
   name := "sbt-directive",
+  description := "sbt plugin enabling C like directives",
   licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
-  organization := "sbt-directive",
-  version := "0.0.1-SNAPSHOT"
+  organization := "org.directive",
+  version := "0.1.0",
+  bintrayRepository := "sbt-plugins",
+  bintrayOrganization := None,
+  publishMavenStyle := false
 )
 
 lazy val commonSettings = Seq(
