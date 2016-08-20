@@ -1,7 +1,7 @@
 > compile
 
 # Should generate a source
-$ exists target/directive/generatedSources/hello/HelloWorld.scala
+$ exists target/scala-2.11/src_managed/directive/hello/HelloWorld.scala
 
 #Source should be the same
-> checkIdentity src/main/scala/hello/HelloWorld.scala target/directive/generatedSources/hello/HelloWorld.scala
+> checkIdentity src/main/scala/hello/HelloWorld.scala target/scala-2.11/src_managed/directive/hello/HelloWorld.scala

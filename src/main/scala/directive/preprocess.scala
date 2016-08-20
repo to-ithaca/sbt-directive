@@ -17,7 +17,7 @@ object Preprocess {
     }
 
   def skip(tag: String): DeferredPreprocessor =
-    lines(tag)("_ => List.empty")
+    lines(tag)(s"""_.map(_ => "" )""")
 
   def identity(tag: String): DeferredPreprocessor =
     lines(tag)("identity")

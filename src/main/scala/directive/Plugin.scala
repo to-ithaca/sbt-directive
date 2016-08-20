@@ -20,8 +20,7 @@ object DirectivePlugin extends AutoPlugin {
       directiveScala := Run.scala.value,
       directiveJava := Run.java.value,
       scalaSource := baseDirectory.value / "src" / "main" / "scala",
-      javaSource := baseDirectory.value / "src" / "main" / "java",
-      generatedSourceDir := target.value / "directive" / "generatedSources"
+      javaSource := baseDirectory.value / "src" / "main" / "java"
     )) ++ 
     Seq(
       preprocessors := Seq.empty,
@@ -29,6 +28,7 @@ object DirectivePlugin extends AutoPlugin {
       (sourceGenerators in Compile) <+= (directiveJava in Directive),
       (scalaSource in Compile) := target.value / "directive" / "empty",
       (javaSource in Compile) := target.value / "directive" / "empty",
+      (sourceDirectories in Compile) += (sourceManaged in Directive).value,
       ivyConfigurations += Directive,
       libraryDependencies ++= Seq(
         "sbt-directive" %% "cli" % "0.0.1-SNAPSHOT" % Directive,
@@ -40,7 +40,6 @@ object DirectivePlugin extends AutoPlugin {
 
 object DirectiveKeys {
 
-  val generatedSourceDir: SettingKey[File] = settingKey("directory containing generated sources")
   val preprocessors: SettingKey[Seq[DeferredPreprocessor]] = settingKey("preprocessor directives")
   val generate: TaskKey[File] = taskKey("generates and compiles a synthetic main")
   val directiveScala: TaskKey[Seq[File]] = taskKey("Runs preprocessors on scala sources")
