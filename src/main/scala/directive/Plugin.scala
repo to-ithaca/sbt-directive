@@ -31,7 +31,7 @@ object DirectivePlugin extends AutoPlugin {
       (sourceDirectories in Compile) += (sourceManaged in Directive).value,
       ivyConfigurations += Directive,
       libraryDependencies ++= Seq(
-        "org.directive" %% "cli" % "0.1.0" % Directive,
+        "org.directive" %% "cli" % "0.2.0-SNAPSHOT" % Directive,
         "org.scala-lang" % "scala-compiler" % "2.11.8" % Directive
       )
     )
